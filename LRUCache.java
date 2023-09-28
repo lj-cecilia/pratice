@@ -47,37 +47,42 @@ class LRUCache {
         cache = new HashMap<>();
         head = new DLinkNode();
         head.prev = null;
-        head.next = tail;
 
         tail = new DLinkNode();
         tail.next = null;
+
+        head.next = tail;
         tail.prev = head;
     }
 
     public int get(int key) {
-        if (!cache.containsKey(key)) return -1;
         DLinkNode node = cache.get(key);
+        if(node == null){
+            return -1; // should raise exception here.
+        }
         moveToHead(node);   //just access it, so refresh its position
         return node.val;
     }
 
 
     public void put(int key, int value) {
-        if (!cache.containsKey(key)) {
-            DLinkNode node = new DLinkNode();
+        DLinkNode node = cache.get(key);
+
+        if (node == null) {
+            DLinkNode replace = new DLinkNode();
+            replace.key = key;
+            replace.val = value;
+            cache.put(key, replace);
+            add(replace);
+            //remove the last node from both the linkednode and cache
+            if (cache.size() > capacity) {
+                DLinkNode tail = removeTail();
+                cache.remove(tail.key);
+            }
+        }
+        else {
             node.val = value;
-            cache.put(key, node);
-
             moveToHead(node);
-        } else {
-            DLinkNode node = cache.get(key);
-            remove(node);
-            DLinkNode newNode = new DLinkNode();
-            newNode.val = value;
-            cache.put(key, newNode);
-
-            moveToHead(node);
-            if (cache.size() > capacity) removeTail();
         }
     }
 }
